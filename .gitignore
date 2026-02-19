@@ -1,0 +1,40 @@
+## .NET
+bin/
+obj/
+publish/
+
+## User-specific
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Rider
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/
+
+## Visual Studio
+.vs/
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Misc
+*.log
+*.tmp
+*.cache
