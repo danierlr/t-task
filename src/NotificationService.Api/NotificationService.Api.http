@@ -1,6 +1,13 @@
 @NotificationService.Api_HostAddress = http://localhost:5200
 
-GET {{NotificationService.Api_HostAddress}}/weatherforecast/
+POST {{NotificationService.Api_HostAddress}}/api/v1/notification
+Content-Type: application/json
 Accept: application/json
+
+{
+    "recipient": "+37061234567",
+    "message": "message_example",
+    "channel": "sms"
+}
 
 ###

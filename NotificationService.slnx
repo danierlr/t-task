@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="src/NotificationService.Api/NotificationService.Api.csproj" Id="cb277c06-f3a6-4e6f-bb59-b07bd29b816a" />
+  <Project Path="src/NotificationService.Application/NotificationService.Application.csproj" Id="71e3a416-c40e-4c4c-b11e-3928b318e86f" />
+  <Project Path="src/NotificationService.Domain/NotificationService.Domain.csproj" Id="18f8b06d-375c-4ec7-aa0d-def31d5dfe86" />
+  <Project Path="src/NotificationService.Infrastructure/NotificationService.Infrastructure.csproj" Id="35d35bcd-94d1-4a29-b383-d7a5f7fddef5" />
 </Solution>
