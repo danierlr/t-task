@@ -1,17 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NotificationService.Application.Notification;
 
-namespace NotificationService.Api.Notification {
-    [ApiController]
-    [Route("api/v1/notification")]
-    public class NotificationController : ControllerBase {
-        public NotificationController() {
+namespace NotificationService.Api.Notification;
 
-        }
+[ApiController]
+[Route("api/v1/notification")]
+public class NotificationController : ControllerBase {
+    private readonly INotificationSender _notificationSender;
+    public NotificationController(INotificationSender notificationSender) {
+        _notificationSender = notificationSender;
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> SendSingle([FromBody] SendNotificationHttpRequest request, CancellationToken cancellationToken) {
+    [HttpPost]
+    public async Task<IActionResult> SendSingle([FromBody] SendNotificationHttpRequest httpRequest, CancellationToken cancellationToken) {
+        var request = httpRequest.ToSendNotificationRequest();
 
-            return Ok("test");
-        }
+        var response = await _notificationSender.SendAsync(request, cancellationToken);
+
+        return Ok("test");
     }
 }

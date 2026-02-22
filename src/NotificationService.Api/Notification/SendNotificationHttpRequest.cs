@@ -1,20 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NotificationService.Domain.Aggregates.Notification;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace NotificationService.Api.Notification; 
 
 
-// TODO add batch
+// TODO add batch notifications
+// TODO? maybe use domain value objects and simple types directly
 public sealed class SendNotificationHttpRequest {
-    //[Required]
-    //public Recipient Recipient;
+    [Required]
+    public Dictionary<string, string> Recipient { get; set; } = new();
 
     [Required]
-    public string? Message { get; set; }
+    public string Message { get; set; } = string.Empty;
 
     [Required]
-    public Channel? Channel { get; set; }
+    public string Channel { get; set; } = string.Empty;
 
     public string? CallbackUrl { get; set; }
 }
