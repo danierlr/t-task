@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Shared\" />
-    <Folder Include="Providers\" />
   </ItemGroup>
 
 </Project>

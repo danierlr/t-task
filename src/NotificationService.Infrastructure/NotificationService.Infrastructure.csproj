@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NotificationService.Application\NotificationService.Application.csproj" />
     <ProjectReference Include="..\NotificationService.Domain\NotificationService.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Buffer\" />
   </ItemGroup>
 
 </Project>
