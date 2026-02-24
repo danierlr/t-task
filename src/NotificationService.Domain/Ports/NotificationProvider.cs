@@ -1,11 +1,11 @@
-﻿using NotificationService.Domain.Aggregates.Notification;
+﻿using NotificationService.Domain.Aggregates.Notifications;
 
 namespace NotificationService.Domain.Ports;
 
 public abstract class NotificationProvider<TRecipient> : INotificationProvider {
     public abstract string Name { get; }
 
-    public abstract Channel Channel { get; }
+    public abstract DeliveryChannel Channel { get; }
 
     public Task<bool> TrySendAsync(Recipient recipient, string message, CancellationToken cancellationToken) {
         if (recipient is not TRecipient typedRecipient) {

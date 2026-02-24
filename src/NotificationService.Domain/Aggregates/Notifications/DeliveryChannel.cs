@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NotificationService.Domain.Aggregates.Notification;
+namespace NotificationService.Domain.Aggregates.Notifications;
 
-public enum Channel {
+public enum DeliveryChannel {
     Sms,
     Email,
     Push

@@ -1,9 +1,6 @@
-﻿using NotificationService.Application.Notification.Dto;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NotificationService.Application.Notifications.Dtos;
 
-namespace NotificationService.Application.Notification;
+namespace NotificationService.Application.Notifications;
 
 public interface INotificationSender {
     Task<SendNotificationResult> SendAsync(SendNotificationRequest request, CancellationToken cancellationToken);
