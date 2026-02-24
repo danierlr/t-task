@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace NotificationService.Application.Pipeline {
-    internal class ProviderLane {
+    public class ProviderLane {
         private readonly CapacityLimiter _capacityLimiter = new CapacityLimiter(100);
 
         private readonly int _numConcurrencySlots;
