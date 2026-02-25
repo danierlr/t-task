@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NotificationService.Api.Notification; 
+namespace NotificationService.Api.Notifications; 
 
 
 // TODO add batch notifications

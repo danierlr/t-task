@@ -1,4 +1,5 @@
-﻿using NotificationService.Application.Utils;
+﻿using NotificationService.Application.RetryQueue;
+using NotificationService.Application.Utils;
 using NotificationService.Domain.Aggregates.Notifications;
 using System.Threading.Channels;
 
@@ -9,7 +10,11 @@ public class NotificationPipeline {
 
     private readonly Channel<Notification> _inbound;
 
-    public NotificationPipeline() {
+    //private readonly LinkedList<string> _inboundBuffer = new();
+    private readonly IRetryQueue _retryQueue;
+
+    public NotificationPipeline(IRetryQueue retryQueue) {
+        _retryQueue = retryQueue;
         _inbound = Channel.CreateUnbounded<Notification>();
     }
 
@@ -29,8 +34,6 @@ public class NotificationPipeline {
 
         return true;
     }
-
-
 
     public void Run(CancellationToken cancellationToken) { 
     }

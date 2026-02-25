@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NotificationService.Application.Notification;
+using NotificationService.Application.Notifications;
 
-namespace NotificationService.Api.Notification;
+namespace NotificationService.Api.Notifications;
 
 [ApiController]
 [Route("api/v1/notification")]

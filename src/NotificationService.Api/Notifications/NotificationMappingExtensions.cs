@@ -1,8 +1,8 @@
 ﻿using NotificationService.Api.Shared;
-using NotificationService.Application.Notification.Dto;
-using NotificationService.Domain.Aggregates.Notification;
+using NotificationService.Application.Notifications.Dtos;
+using NotificationService.Domain.Aggregates.Notifications;
 
-namespace NotificationService.Api.Notification;
+namespace NotificationService.Api.Notifications;
 
 public static class NotificationMappingExtensions {
     public static SendNotificationRequest ToSendNotificationRequest(this SendNotificationHttpRequest httpRequest) {

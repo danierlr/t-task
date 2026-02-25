@@ -1,4 +1,4 @@
-﻿namespace NotificationService.Api.Notification; 
+﻿namespace NotificationService.Api.Notifications; 
 public sealed class SendNotificationHttpResponse {
     public string NotificationId { get; set; } = string.Empty;
 
