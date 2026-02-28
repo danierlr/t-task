@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Events\" />
+    <PackageReference Include="IdGen" Version="3.0.7" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NotificationService.Domain.Aggregates.Notifications;
+﻿using NotificationService.Domain.Aggregates.Notifications;
 
 namespace NotificationService.Domain.Ports;
 

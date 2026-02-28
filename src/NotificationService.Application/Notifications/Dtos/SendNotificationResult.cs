@@ -1,5 +1,11 @@
-﻿namespace NotificationService.Application.Notifications.Dtos;
+﻿using NotificationService.Domain.Aggregates.Notifications;
+
+namespace NotificationService.Application.Notifications.Dtos;
 
 public sealed record SendNotificationResult(
-    string NotificationId
+    NotificationId NotificationId,
+    NotificationStatus Status,
+    DateTime CreatedAt,
+    DateTime? DeliveredAt,
+    string? ErrorMessage
 );

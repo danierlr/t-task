@@ -1,5 +1,5 @@
 ﻿using NotificationService.Application.RetryQueue;
-using NotificationService.Application.Utils;
+using NotificationService.Application.Shared;
 using NotificationService.Domain.Aggregates.Notifications;
 using System.Threading.Channels;
 

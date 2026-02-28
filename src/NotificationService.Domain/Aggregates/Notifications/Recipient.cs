@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NotificationService.Domain.Aggregates.Notifications;
+﻿namespace NotificationService.Domain.Aggregates.Notifications;
 
 public abstract record Recipient { }
 

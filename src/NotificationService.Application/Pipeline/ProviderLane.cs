@@ -1,4 +1,4 @@
-﻿using NotificationService.Application.Utils;
+﻿using NotificationService.Application.Shared;
 using NotificationService.Domain.Ports;
 using System;
 using System.Collections.Generic;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NotificationService.Application.Utils;
+﻿namespace NotificationService.Application.Shared;
 
 // Similar to semaphore slim with 0 timeout, the difference is changeable capacity, can lock and release more than 1
 

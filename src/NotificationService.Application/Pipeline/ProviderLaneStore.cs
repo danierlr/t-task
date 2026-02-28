@@ -1,7 +1,6 @@
-﻿using NotificationService.Application.Pipeline;
-using NotificationService.Domain.Aggregates.Notifications;
+﻿using NotificationService.Domain.Aggregates.Notifications;
 
-namespace NotificationService.Application.Provider;
+namespace NotificationService.Application.Pipeline;
 
 public class ProviderLaneStore {
     private readonly IReadOnlyList<ProviderLane> _allLanes;
