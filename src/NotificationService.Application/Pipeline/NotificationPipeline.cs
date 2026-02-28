@@ -29,7 +29,7 @@ public class NotificationPipeline {
 
         if (!written) {
             _globalCapacityLimiter.Release(1);
-            throw new InvalidOperationException("Unbound channel rejected write");
+            throw new InvalidOperationException("Could not write to unbound channel");
         }
 
         return true;
