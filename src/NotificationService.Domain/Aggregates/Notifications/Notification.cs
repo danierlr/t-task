@@ -8,6 +8,8 @@ public sealed class Notification : Entity {
 
     public NotificationStatus Status { get; private set; }
 
+    public DeliveryChannel Channel { get; }
+
     public string Message { get; }
 
     public string? FailReason { get; private set; }
@@ -16,11 +18,12 @@ public sealed class Notification : Entity {
 
     public DateTime? SettledAt { get; private set; }
 
-    public Notification(NotificationId id, string message, DateTime createdAt) {
+    public Notification(NotificationId id, DeliveryChannel channel, string message, DateTime createdAt) {
         Id = id;
+        Channel = channel;
         Message = message;
         CreatedAt = createdAt;
-        Status = NotificationStatus.QueuedForProcessing;
+        Status = NotificationStatus.Processing;
     }
 
     private void UpdateStatus(NotificationStatus newStatus) {

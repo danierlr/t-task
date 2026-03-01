@@ -7,5 +7,5 @@
 /// <param name="Priority">Priority for the relevant channel. Higher number = higher priority.</param>
 public record ProviderConfiguration(
     bool Enabled,
-    int Priority
+    long Priority
 );

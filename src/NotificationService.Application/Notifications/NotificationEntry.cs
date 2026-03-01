@@ -3,15 +3,21 @@ using NotificationService.Domain.Aggregates.Notifications;
 
 namespace NotificationService.Application.Notifications;
 
-public class NotificationEntry: ILockable {
+public class NotificationEntry : ILockable {
     public Notification Notification { get; }
+
+    public ProcessingState? State { get; set; } = ProcessingState.QueuedForProcessing;
 
     public SyncRoot SyncRoot { get; } = new();
 
-    public NotificationEntry(Notification notification) {
-        Notification = notification;
-        ProcessingState = ProcessingState.QueuedForProcessing;
-    }
+    public int RetryCount { get; set; }
 
-    public ProcessingState ProcessingState { get; set; }
+    public DateTime ExpiresAt { get; set; }
+
+    public DateTime? RetryAt { get; set; }
+
+    public NotificationEntry(Notification notification, DateTime expiresAt) {
+        Notification = notification;
+        ExpiresAt = expiresAt;
+    }
 }

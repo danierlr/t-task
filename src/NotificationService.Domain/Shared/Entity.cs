@@ -7,5 +7,5 @@ public abstract class Entity {
 
     protected void AddEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
-    public void ClearEvents() => _domainEvents.Clear();
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }
