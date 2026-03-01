@@ -2,34 +2,14 @@
 
 public enum NotificationStatus {
     /// <summary>
-    /// New notification waiting to be handled by the background worker
+    /// Notification is being processed in the pipeline
     /// </summary>
-    QueuedForProcessing,
-
-    /// <summary>
-    /// Waiting in the provider buffer (assigned to concrete provider for processing)
-    /// </summary>
-    QueuedForProvider,
-
-    /// <summary>
-    /// Is being processed by the provider (request sent to the external provider)
-    /// </summary>
-    Sending,
+    Processing,
 
     /// <summary>
     /// Sent successfully
     /// </summary>
     Sent,
-
-    /// <summary>
-    /// Waiting in global retry queue, due to all relevant providers busy
-    /// </summary>
-    QueuedForCapacityRetry,
-
-    /// <summary>
-    /// Waiting in global retry queue, due to provider delivery fail
-    /// </summary>
-    QueuedForProviderRetry,
 
     /// <summary>
     /// Failed permanently

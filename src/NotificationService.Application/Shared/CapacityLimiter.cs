@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Application.Shared;
 
-// Similar to semaphore slim with 0 timeout, the difference is changeable capacity, can lock and release more than 1
+// Similar to semaphore slim with 0 timeout (never blocks, no contention), differences: changeable capacity, can lock and release more than 1
 
 internal class CapacityLimiter {
     private long _capacity;

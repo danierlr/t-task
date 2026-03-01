@@ -4,7 +4,7 @@ public interface ILockable {
     SyncRoot SyncRoot { get; }
 }
 
-public class SyncRoot { }
+public sealed class SyncRoot { }
 
 public readonly struct LockToken : IDisposable {
     private readonly SyncRoot _syncRoot;

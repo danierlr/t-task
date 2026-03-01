@@ -24,19 +24,20 @@ public class NotificationSender : INotificationSender {
         DateTime currentTime = DateTime.UtcNow;
         DateTime lingerDeadline = currentTime + TimeSpan.FromMilliseconds(2000);
 
-        var notification = new Notification(id, request.Message, currentTime);
+        Notification notification = new(id, request.Message, currentTime);
+        NotificationEntry notificationEntry = new(notification);
 
         await _notificationRepository.CreateAsync(notification);
 
         SendNotificationResult result = new SendNotificationResult(
             NotificationId: id,
-            Status: NotificationStatus.QueuedForProcessing,
+            Status: NotificationStatus.Processing,
             CreatedAt: currentTime,
             SettledAt: null,
             ErrorMessage: null
         );
 
-        bool submitted = _notificationPipeline.TrySubmit(notification);
+        bool submitted = _notificationPipeline.TrySubmit(notificationEntry);
 
         if (!submitted) {
             DateTime failTime = DateTime.UtcNow;

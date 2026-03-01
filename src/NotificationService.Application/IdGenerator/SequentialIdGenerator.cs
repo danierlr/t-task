@@ -1,6 +1,6 @@
 ﻿using NotificationService.Domain.Ports;
 using IdGen;
-using NotificationService.Application.Utils;
+using NotificationService.Application.Shared;
 
 namespace NotificationService.Application.IdGenerator;
 

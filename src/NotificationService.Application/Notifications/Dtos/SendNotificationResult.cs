@@ -6,6 +6,6 @@ public sealed record SendNotificationResult(
     NotificationId NotificationId,
     NotificationStatus Status,
     DateTime CreatedAt,
-    DateTime? DeliveredAt,
+    DateTime? SettledAt,
     string? ErrorMessage
 );

@@ -44,7 +44,7 @@ internal class InMemorySimpleRetryQueue : IRetryQueue {
 
     public void Enqueue(Notification notification, DateTime ready, DateTime timeout) {
         if (_notifications.TryGetValue(notification.Id, out var _)) {
-            throw new InvalidOperationException($"Notification with id {notification.Id.Value} is present in queue already");
+            throw new InvalidOperationException($"Notification with id {notification.Id} is present in queue already");
         }
 
         _notifications[notification.Id] = notification;
