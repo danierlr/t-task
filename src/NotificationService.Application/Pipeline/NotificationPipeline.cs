@@ -3,6 +3,7 @@ using NotificationService.Application.RetryQueue;
 using NotificationService.Application.Settings;
 using NotificationService.Application.Shared;
 using NotificationService.Domain.Aggregates.Notifications;
+using NotificationService.Domain.Ports;
 using System.Threading.Channels;
 
 namespace NotificationService.Application.Pipeline;
@@ -16,24 +17,35 @@ public class NotificationPipeline : IReconfigurable {
 
     private readonly AutoResetEvent _autoResetEvent = new(false);
 
-    private readonly ProviderLaneStore _laneStore;
-
     private readonly DomainEventDispatcher _dispatcher;
 
     private PipelineSettings _settings;
 
+    private readonly CancellationToken _cancellationToken;
+
+    public ProviderLaneStore LaneStore { get; }
+
     public NotificationPipeline(
         Dictionary<DeliveryChannel, IRetryQueue> retryQueues,
-        ProviderLaneStore laneStore,
+        IReadOnlyList<INotificationProvider> providers,
         DomainEventDispatcher dispatcher,
-        PipelineSettings initialSettings
+        PipelineSettings initialSettings,
+        CancellationToken cancellationToken
     ) {
         _retryQueues = retryQueues;
         _inbound = Channel.CreateUnbounded<NotificationEntry>();
-        _laneStore = laneStore;
         _dispatcher = dispatcher;
         _settings = initialSettings;
         _totalCapacityLimiter = new CapacityLimiter(initialSettings.TotalNotificationCapacity);
+        _cancellationToken = cancellationToken;
+
+        List<ProviderLane> lanes = providers.Select(provider => {
+            var settings = _settings.Lanes[(provider.Channel, provider.Name)];
+            ProviderLane lane = new(provider, settings, this, _cancellationToken);
+            return lane;
+        }).ToList();
+
+        LaneStore = new(lanes, _settings);
     }
 
     public void ApplySettings(PipelineSettings settings) {
@@ -42,6 +54,8 @@ public class NotificationPipeline : IReconfigurable {
         if (settings.TotalNotificationCapacity != _totalCapacityLimiter.Capacity) {
             _totalCapacityLimiter.SetCapacity(settings.TotalNotificationCapacity);
         }
+
+        LaneStore.ApplySettings(settings);
     }
 
     public bool TrySubmitNew(NotificationEntry entry) {
@@ -170,7 +184,7 @@ public class NotificationPipeline : IReconfigurable {
 
     private bool TrySubmitEntryToLane(NotificationEntry entry) {
         var channel = entry.Notification.Channel;
-        var lanes = _laneStore.FindLanesByChannel(channel);
+        var lanes = LaneStore.FindLanesByChannel(channel);
         var laneIndex = 0;
         bool submitted = false;
 
@@ -282,10 +296,10 @@ public class NotificationPipeline : IReconfigurable {
         _autoResetEvent.Set();
     }
 
-    public void Run(CancellationToken cancellationToken) {
-        cancellationToken.Register(Wake);
+    public void Run() {
+        _cancellationToken.Register(Wake);
 
-        while (!cancellationToken.IsCancellationRequested) {
+        while (!_cancellationToken.IsCancellationRequested) {
             bool didWork = false;
 
             HashSet<DeliveryChannel> channelsFull;

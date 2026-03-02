@@ -6,7 +6,7 @@ namespace NotificationService.Application.Pipeline;
 public class ProviderLaneStore: IReconfigurable {
     private readonly IReadOnlyList<ProviderLane> _allLanes;
 
-    private Dictionary<DeliveryChannel, IReadOnlyList<ProviderLane>> _lanesByChannel = new();
+    private volatile Dictionary<DeliveryChannel, IReadOnlyList<ProviderLane>> _lanesByChannel = new();
 
     public ProviderLaneStore(IEnumerable<ProviderLane> lanes, PipelineSettings settings) {
         _allLanes = lanes.ToList();
@@ -18,7 +18,7 @@ public class ProviderLaneStore: IReconfigurable {
     public IReadOnlyList<ProviderLane> FindLanesByChannel(DeliveryChannel channel) {
         bool hasList = _lanesByChannel.TryGetValue(channel, out var list);
 
-        if (!hasList) {
+        if (!hasList || list is null) {
             throw new InvalidOperationException("Delivery lane list not found");
         }
 
@@ -26,6 +26,28 @@ public class ProviderLaneStore: IReconfigurable {
     }
 
     public void ApplySettings(PipelineSettings settings) {
-        throw new NotImplementedException();
+        Dictionary<DeliveryChannel, List<ProviderLane>> lanesByChannel = new();
+
+        foreach (var channel in Enum.GetValues<DeliveryChannel>()) {
+            lanesByChannel[channel] = new();
+        }
+
+        foreach (var lane in _allLanes) {
+            var laneSettings = settings.Lanes[(lane.Provider.Channel, lane.Provider.Name)];
+            lane.ApplySettings(laneSettings);
+
+            if(laneSettings.Provider.Enabled) {
+                lanesByChannel[lane.Provider.Channel].Add(lane);
+            }
+        }
+
+        var newLanesByChannel = new Dictionary<DeliveryChannel, IReadOnlyList<ProviderLane>>();
+
+        foreach (var channel in Enum.GetValues<DeliveryChannel>()) {
+            lanesByChannel[channel].Sort((first, second) => second.Settings.Provider.Priority.CompareTo(first.Settings.Provider.Priority));
+            newLanesByChannel[channel] = lanesByChannel[channel];
+        }
+
+        _lanesByChannel = newLanesByChannel;
     }
 }
