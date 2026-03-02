@@ -69,13 +69,20 @@ public class NotificationPipeline : IReconfigurable {
         var channel = entry.Notification.Channel;
         var channelSettings = _settings.Channels[channel];
 
-        if(entry.RetryCount >= channelSettings.MaxNumRetries) {
+        if (entry.RetryCount >= channelSettings.MaxNumRetries) {
             using (var _ = entry.Lock()) {
                 entry.State = null;
                 entry.RetryAt = null;
 
                 entry.Notification.MarkAsFailed($"Exceeded maximum retry limit of {channelSettings.MaxNumRetries} attempts", now);
+
+                _dispatcher.Dispatch(entry.Notification.DomainEvents);
+                entry.Notification.ClearDomainEvents();
             }
+
+            _totalCapacityLimiter.Release(1);
+
+            return;
         }
 
         DateTime retryAt = RetryPolicy.FindRetryTime(
@@ -84,37 +91,35 @@ public class NotificationPipeline : IReconfigurable {
             channelSettings.InitialRetryDelay,
             channelSettings.MaxRetryDelay
         );
-        
+
+        if(retryAt >= entry.ExpiresAt) {
+            ExpireEntry(entry, now, "Notification time to live expires before the notification can be sent");
+            return;
+        }
+
         using (var _ = entry.Lock()) {
             entry.State = ProcessingState.QueuedForProviderRetry;
             entry.RetryCount += 1;
             entry.RetryAt = retryAt;
         }
+
+        _retryQueues[channel].Enqueue(entry);
+
+        Wake();
     }
 
     private bool ProcessExpiredEntries() {
-        // TODO? batch dequeue
-
         bool didWork = false;
 
         DateTime now = DateTime.UtcNow;
 
         foreach (var (channel, retryQueue) in _retryQueues) {
-            NotificationEntry? timedOutEntry = null;
-
             while (true) {
-                var timedOutList = retryQueue.DequeueExpired(now, 1);
-                timedOutEntry = timedOutList.Count > 0 ? timedOutList[0] : null;
+                var entry = retryQueue.PeekExpired();
 
-                if (timedOutEntry is not null) {
-                    using (var _ = timedOutEntry.Lock()) {
-                        timedOutEntry.State = null;
-                        timedOutEntry.Notification.MarkAsFailed("Notification time to live expired before being sent", now);
-                        _dispatcher.Dispatch(timedOutEntry.Notification.DomainEvents);
-                        timedOutEntry.Notification.ClearDomainEvents();
-                    }
-
-                    _totalCapacityLimiter.Release(1);
+                if (entry is not null && now >= entry.ExpiresAt) {
+                    retryQueue.DequeueExpired();
+                    ExpireEntry(entry, now, "Notification time to live expires before the notification has been sent");
 
                     didWork = true;
                 } else {
@@ -126,37 +131,34 @@ public class NotificationPipeline : IReconfigurable {
         return didWork;
     }
 
-    private bool ProcessRetryEntries() {
-        // TODO this can be optimized a bit
-
+    private bool ProcessRetryEntries(out HashSet<DeliveryChannel> channelsFull) {
         bool didWork = false;
 
         DateTime now = DateTime.UtcNow;
 
+        channelsFull = new();
+
+
         foreach (var (channel, retryQueue) in _retryQueues) {
-            var lanes = _laneStore.FindLanesByChannel(channel);
-            var laneIndex = 0;
+            
 
-            while (laneIndex < lanes.Count) {
-                if (!lanes[laneIndex].CanSubmit) {
-                    laneIndex += 1;
-                    continue;
-                }
+            while (true) {
+                var entry = retryQueue.PeekRetryReady();
 
-                var retryEntryList = retryQueue.DequeueRetryReady(now, 1);
-
-                var retryEntry = retryEntryList.Count > 0 ? retryEntryList[0] : null;
-
-                if (retryEntry is null) {
+                if(entry is null || entry.RetryAt!.Value > now) {
                     break;
                 }
 
-                var submitted = lanes[laneIndex].TrySubmit(retryEntry);
+                // TODO? make this better without dequeue (while still having no race condition)
 
-                if (!submitted) {
-                    retryQueue.Enqueue(retryEntry);
-                    laneIndex += 1;
-                    continue;
+                retryQueue.DequeueRetryReady();
+
+                bool assigned = TrySubmitEntryToLane(entry);
+
+                if (!assigned) {
+                    retryQueue.Enqueue(entry);
+                    channelsFull.Add(channel);
+                    break;
                 }
 
                 didWork = true;
@@ -166,14 +168,104 @@ public class NotificationPipeline : IReconfigurable {
         return didWork;
     }
 
-    private bool ProcessInboxEntries() {
-        throw new NotImplementedException();
+    private bool TrySubmitEntryToLane(NotificationEntry entry) {
+        var channel = entry.Notification.Channel;
+        var lanes = _laneStore.FindLanesByChannel(channel);
+        var laneIndex = 0;
+        bool submitted = false;
+
+        while (laneIndex < lanes.Count) {
+            if (!lanes[laneIndex].CanSubmit) {
+                laneIndex += 1;
+                continue;
+            }
+
+            submitted = lanes[laneIndex].TrySubmit(entry);
+
+            if (submitted) {
+                break;
+            }
+
+            laneIndex += 1;
+        }
+
+        return submitted;
     }
 
-    private TimeSpan FindSleepDuration() {
-        throw new NotImplementedException();
-        //return Timeout.InfiniteTimeSpan;
+    private void ExpireEntry(NotificationEntry entry, DateTime expiryTime, string message) {
+        using (var _ = entry.Lock()) {
+            entry.State = null;
+            entry.Notification.MarkAsFailed(message, expiryTime);
+            _dispatcher.Dispatch(entry.Notification.DomainEvents);
+            entry.Notification.ClearDomainEvents();
+        }
 
+        _totalCapacityLimiter.Release(1);
+    }
+
+    private bool ProcessInboundEntries(HashSet<DeliveryChannel> channelsFull) {
+        // no notification retry starving occurs, because if providers are bottlenecked, notifications with past retry times have bigger priority
+
+        bool didWork = false;
+        DateTime now = DateTime.UtcNow;
+
+        while (_inbound.Reader.TryRead(out var entry)) {
+            var channel = entry.Notification.Channel;
+            bool assigned = false;
+
+            if (!channelsFull.Contains(channel)) {
+                assigned = TrySubmitEntryToLane(entry);
+            }
+
+            if (!assigned) {
+                channelsFull.Add(channel);
+                var retryQueue = _retryQueues[channel];
+
+                using (var _ = entry.Lock()) {
+                    entry.RetryAt = now;
+                    entry.State = ProcessingState.QueuedForCapacityRetry;
+                }
+
+                retryQueue.Enqueue(entry);
+            }
+
+            didWork = true;
+        }
+
+        return didWork;
+    }
+
+    private TimeSpan FindSleepDuration(HashSet<DeliveryChannel> channelsFull) {
+        DateTime minTime = DateTime.MaxValue;
+
+        foreach (var (channel, retryQueue) in _retryQueues) {
+            var entry = retryQueue.PeekExpired();
+
+            if (entry is not null) {
+                minTime = TimeUtils.Min(minTime, entry.ExpiresAt);
+            }
+
+            if (channelsFull.Contains(channel)) {
+                // need to skip full channels to prevent busy waiting, because if channel is full (all enabled channel providers are full),
+                // it is possible that there are notification entries with past RetryAt date
+                continue;
+            }
+
+            entry = retryQueue.PeekRetryReady();
+
+            if(entry is not null) {
+                minTime = TimeUtils.Min(minTime, entry.RetryAt!.Value);
+            }
+        }
+
+
+
+        TimeSpan waitTime = minTime - DateTime.UtcNow;
+
+        waitTime = TimeUtils.Max(waitTime, TimeSpan.Zero);
+
+
+        return waitTime;
     }
 
     private void Sleep(TimeSpan duration) {
@@ -190,13 +282,17 @@ public class NotificationPipeline : IReconfigurable {
         while (!cancellationToken.IsCancellationRequested) {
             bool didWork = false;
 
+            HashSet<DeliveryChannel> channelsFull;
+
             didWork |= ProcessExpiredEntries();
-            didWork |= ProcessRetryEntries();
-            didWork |= ProcessInboxEntries();
+            didWork |= ProcessRetryEntries(out channelsFull);
+            didWork |= ProcessInboundEntries(channelsFull);
 
             if (!didWork) {
-                TimeSpan duration = FindSleepDuration();
-                Sleep(duration);
+                TimeSpan duration = FindSleepDuration(channelsFull);
+                if (duration != TimeSpan.Zero) {
+                    Sleep(duration);
+                }
             }
         }
     }

@@ -40,7 +40,7 @@ public sealed class Notification : Entity {
 
         NotificationSettledEvent settledEvent = new(
             NotificationId: Id,
-            Status: NotificationStatus.Failed,
+            Status: NotificationStatus.Sent,
             SettledAt: sentTime,
             FailReason: null
         );

@@ -6,11 +6,11 @@ namespace NotificationService.Application.RetryQueue;
 // For a message broker based storage it would be better to have a different pipeline architecture completely
 
 public interface IRetryQueue {
-    public IReadOnlyList<NotificationEntry> DequeueExpired(DateTime maxExpiresAt, long maxCount);
+    public NotificationEntry? DequeueExpired();
 
     public NotificationEntry? PeekExpired();
 
-    public IReadOnlyList<NotificationEntry> DequeueRetryReady(DateTime maxReadyAt, long maxCount);
+    public NotificationEntry? DequeueRetryReady();
 
     public NotificationEntry? PeekRetryReady();
 

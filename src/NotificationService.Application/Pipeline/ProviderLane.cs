@@ -39,7 +39,7 @@ namespace NotificationService.Application.Pipeline {
                     throw new InvalidOperationException("Could not write to unbound channel");
                 }
 
-                notificationEntry.ProcessingState = ProcessingState.QueuedForProvider;
+                notificationEntry.State = ProcessingState.QueuedForProvider;
             }
 
             return true;

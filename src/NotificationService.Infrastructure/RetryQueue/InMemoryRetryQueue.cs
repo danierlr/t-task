@@ -1,54 +1,63 @@
-﻿using NotificationService.Application.RetryQueue;
+﻿using NotificationService.Application.Notifications;
+using NotificationService.Application.RetryQueue;
 using NotificationService.Domain.Aggregates.Notifications;
 
 namespace NotificationService.Infrastructure.RetryQueue;
 
 internal class InMemorySimpleRetryQueue : IRetryQueue {
-    private Dictionary<NotificationId, Notification> _notifications = new();
+    private Dictionary<NotificationId, NotificationEntry> _entries = new();
     private MinPriorityQueueRemovable<NotificationId, DateTime> _retry = new();
-    private MinPriorityQueueRemovable<NotificationId, DateTime> _timeout = new();
+    private MinPriorityQueueRemovable<NotificationId, DateTime> _expired = new();
 
 
-    public IReadOnlyList<Notification> DequeueRetryReady(DateTime time, long maxCount)
-        => Dequeue(_retry, _timeout, time, maxCount);
+    public NotificationEntry? DequeueRetryReady()
+        => Dequeue(_retry, _expired);
 
+    public NotificationEntry? DequeueExpired()
+        => Dequeue(_expired, _retry);
 
-    public IReadOnlyList<Notification> DequeueTimedOut(DateTime time, long maxCount)
-        => Dequeue(_timeout, _retry, time, maxCount);
+    public NotificationEntry? PeekRetryReady() => Peek(_retry);
 
-    private IReadOnlyList<Notification> Dequeue(
+    public NotificationEntry? PeekExpired() => Peek(_expired);
+
+    private NotificationEntry? Dequeue(
         MinPriorityQueueRemovable<NotificationId, DateTime> primary,
-        MinPriorityQueueRemovable<NotificationId, DateTime> secondary,
-        DateTime time,
-        long maxCount
+        MinPriorityQueueRemovable<NotificationId, DateTime> secondary
     ) {
-        List<Notification> results = new();
-
-        while (results.Count < maxCount) {
-            bool found = primary.TryDequeueMin(out NotificationId notificationId, time);
-
-            Notification? notification = null;
-
-            if (found) {
-                notification = _notifications[notificationId];
-                _notifications.Remove(notificationId);
-                secondary.Remove(notificationId);
-                results.Add(notification);
-            } else {
-                break;
-            }
+        bool found = primary.TryDequeue(out NotificationId notificationId);
+        if (!found) {
+            return null;
         }
 
-        return results;
+        NotificationEntry entry = _entries[notificationId];
+
+        _entries.Remove(notificationId);
+        secondary.Remove(notificationId);
+
+        return entry;
     }
 
-    public void Enqueue(Notification notification, DateTime ready, DateTime timeout) {
-        if (_notifications.TryGetValue(notification.Id, out var _)) {
-            throw new InvalidOperationException($"Notification with id {notification.Id} is present in queue already");
+    private NotificationEntry? Peek(MinPriorityQueueRemovable<NotificationId, DateTime> queue) {
+        bool exists = queue.TryPeek(out NotificationId notificationId);
+
+        if (exists) {
+            return _entries[notificationId];
         }
 
-        _notifications[notification.Id] = notification;
-        _retry.Enqueue(notification.Id, ready);
-        _timeout.Enqueue(notification.Id, timeout);
+        return null;
+    }
+
+    public void Enqueue(NotificationEntry entry) {
+        if (_entries.TryGetValue(entry.Notification.Id, out var _)) {
+            throw new InvalidOperationException($"Notification with id {entry.Notification.Id} is present in queue already");
+        }
+
+        if (entry.RetryAt is null) {
+            throw new InvalidOperationException($"Can not enqueue notification with id {entry.Notification.Id} RetryAt is not specified");
+        }
+
+        _entries[entry.Notification.Id] = entry;
+        _retry.Enqueue(entry.Notification.Id, entry.RetryAt.Value);
+        _expired.Enqueue(entry.Notification.Id, entry.ExpiresAt);
     }
 }

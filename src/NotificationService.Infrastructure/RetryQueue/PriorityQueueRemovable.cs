@@ -13,7 +13,19 @@ public class MinPriorityQueueRemovable<TElement, TPriority>
         _queue.Enqueue(element, priority);
     }
 
-    public bool TryDequeueMin(out TElement element, TPriority maxPriority) {
+    public bool TryDequeue(out TElement element) {
+        element = default!;
+
+        bool exists = TryPeek(out element);
+
+        if (exists) {
+            exists = _queue.TryDequeue(out element, out _);
+        }
+
+        return exists;
+    }
+
+    public bool TryPeek(out TElement element) {
         element = default!;
 
         while (true) {
@@ -29,16 +41,10 @@ public class MinPriorityQueueRemovable<TElement, TPriority>
                 continue;
             }
 
-            if (topPriority.CompareTo(maxPriority) <= 0) {
-                element = topElement;
-                _queue.TryDequeue(out topElement, out topPriority);
+            element = topElement;
 
-                return true;
-            }
-
-            return false;
+            return true;
         }
-
     }
 
     public void Remove(TElement element) {

@@ -16,7 +16,7 @@ public static class DependencyInjectionExtensions {
         var initialSettings = SettingsMapper.ToPipelineSettings(config);
 
         services.AddSingleton<PipelineSettings>(initialSettings);
-        services.AddSingleton<SettingsService>()
+        services.AddSingleton<SettingsService>();
 
         services.AddSingleton<NotificationSettleRegistry>();
         services.AddSingleton<IIdGenerator, SequentialIdGenerator>();

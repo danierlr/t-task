@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Shared\TimeUtils.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="IdGen" Version="3.0.7" />
   </ItemGroup>
 
