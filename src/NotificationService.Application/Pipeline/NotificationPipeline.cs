@@ -260,7 +260,9 @@ public class NotificationPipeline : IReconfigurable {
     }
 
     private TimeSpan FindSleepDuration(HashSet<DeliveryChannel> channelsFull) {
-        DateTime minTime = DateTime.MaxValue;
+        DateTime now = DateTime.UtcNow;
+        //DateTime minTime = DateTime.MaxValue; // does not work ...
+        DateTime minTime = now + TimeSpan.FromDays(10);
 
         foreach (var (channel, retryQueue) in _retryQueues) {
             var entry = retryQueue.PeekExpired();
@@ -282,12 +284,9 @@ public class NotificationPipeline : IReconfigurable {
             }
         }
 
-
-
-        TimeSpan waitTime = minTime - DateTime.UtcNow;
+        TimeSpan waitTime = minTime - now;
 
         waitTime = TimeUtils.Max(waitTime, TimeSpan.Zero);
-
 
         return waitTime;
     }

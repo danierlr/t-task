@@ -44,7 +44,7 @@ public static class DependencyInjectionExtensions {
             new FakeProvider<PushRecipient>("always_succeeding", DeliveryChannel.Push, 1, 100, 50),
         };
 
-        services.AddSingleton(allProviders);
+        services.AddSingleton<IReadOnlyList<INotificationProvider>>(allProviders);
 
         Dictionary<DeliveryChannel, IRetryQueue> retryQueues = Enum.GetValues<DeliveryChannel>()
             .ToDictionary(
@@ -55,6 +55,7 @@ public static class DependencyInjectionExtensions {
         services.AddSingleton(retryQueues);
         services.AddSingleton<DomainEventDispatcher>();
         services.AddSingleton<NotificationSettleRegistry>();
+        services.AddSingleton<NotificationSettledHandler>();
         services.AddSingleton<INotificationRepository, FakeNotificationRepository>();
         services.AddSingleton<IIdGenerator, SequentialIdGenerator>();
         services.AddSingleton<PipelineCancelToken>();
