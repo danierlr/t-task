@@ -1,15 +1,16 @@
-﻿using NotificationService.Domain.Aggregates.Notifications;
+﻿using NotificationService.Application.Settings;
+using NotificationService.Domain.Aggregates.Notifications;
 
 namespace NotificationService.Application.Pipeline;
 
-public class ProviderLaneStore {
+public class ProviderLaneStore: IReconfigurable {
     private readonly IReadOnlyList<ProviderLane> _allLanes;
 
     private Dictionary<DeliveryChannel, IReadOnlyList<ProviderLane>> _lanesByChannel = new();
 
-    public ProviderLaneStore(IEnumerable<ProviderLane> lanes, Configuration initialConfiguration) {
+    public ProviderLaneStore(IEnumerable<ProviderLane> lanes, PipelineSettings settings) {
         _allLanes = lanes.ToList();
-        ApplyConfiguration(initialConfiguration);
+        ApplySettings(settings);
     }
 
     public IReadOnlyList<ProviderLane> Lanes => _allLanes;
@@ -24,7 +25,7 @@ public class ProviderLaneStore {
         return list;
     }
 
-    public void ApplyConfiguration(Configuration configuration){
+    public void ApplySettings(PipelineSettings settings) {
         throw new NotImplementedException();
     }
 }
