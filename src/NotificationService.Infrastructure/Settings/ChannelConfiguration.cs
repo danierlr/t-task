@@ -7,5 +7,11 @@ public class ChannelConfiguration {
 
     public long TimeToLiveMs { get; set; }
 
+    public long InitialRetryDelay { get; set; }
+
+    public double BackoffMultiplier { get; set; }
+
+    public long MaxRetryDelayMs { get; set; }
+
     public Dictionary <string, ProviderLaneConfiguration> Providers { get; set; } = new();
 }

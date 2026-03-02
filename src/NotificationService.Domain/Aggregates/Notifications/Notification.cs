@@ -20,9 +20,9 @@ public sealed class Notification : Entity {
 
     public Recipient Recipient { get; }
 
-    public Notification(NotificationId id, DeliveryChannel channel, string message, Recipient recipient, DateTime createdAt) {
+    public Notification(NotificationId id, DeliveryChannel deliveryChannel, string message, Recipient recipient, DateTime createdAt) {
         Id = id;
-        Channel = channel;
+        Channel = deliveryChannel;
         Message = message;
         Recipient = recipient;
         CreatedAt = createdAt;
