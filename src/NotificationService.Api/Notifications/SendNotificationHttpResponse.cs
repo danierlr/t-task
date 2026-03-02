@@ -6,11 +6,11 @@ public sealed class SendNotificationHttpResponse {
 
     public string Status { get; set; } = string.Empty;
 
-    public string ProviderUsed { get; set; } = string.Empty;
+    public string? UsedProviderName { get; set; } = string.Empty;
 
-    public string? SentAt { get; set; }
+    public string? SettledAt { get; set; }
 
     public string CreatedAt { get; set; } = string.Empty;
 
-    public int RetryCount { get; set; }
+    public long RetryCount { get; set; }
 }

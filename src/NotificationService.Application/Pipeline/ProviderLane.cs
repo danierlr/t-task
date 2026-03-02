@@ -88,7 +88,7 @@ namespace NotificationService.Application.Pipeline {
                         bool sent = await Provider.TrySendAsync(entry.Notification.Recipient, entry.Notification.Message, timeoutCts.Token);
 
                         if (sent) {
-                            _notificationPipeline.SettleEntry(entry, DateTime.UtcNow, true);
+                            _notificationPipeline.SettleEntry(entry, DateTime.UtcNow, true, Provider.Name, null);
                         } else {
                             _notificationPipeline.SubmitRetry(entry);
                         }

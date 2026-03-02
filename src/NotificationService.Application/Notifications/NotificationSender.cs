@@ -61,7 +61,9 @@ public class NotificationSender : INotificationSender {
             Status: NotificationStatus.Processing,
             CreatedAt: currentTime,
             SettledAt: null,
-            ErrorMessage: null
+            ErrorMessage: null,
+            UsedProviderName: null,
+            RetryCount: 0
         );
 
         bool submitted = _notificationPipeline.TrySubmitNew(notificationEntry);
@@ -89,13 +91,18 @@ public class NotificationSender : INotificationSender {
         var completionEvent = await _notificationSettleRegistry.WaitForSettle(id, lingerUntil);
 
         if (completionEvent is null) {
-            return result; // TODO add events for each status transition and return proper proper status
+            // TODO add events for each status transition and return proper proper status
+            return result with {
+                RetryCount = notificationEntry.RetryCount,
+            };
         }
 
         result = result with {
             Status = completionEvent.Status,
             SettledAt = completionEvent.SettledAt,
             ErrorMessage = completionEvent.FailReason,
+            UsedProviderName = completionEvent.UsedProviderName,
+            RetryCount = notificationEntry.RetryCount,
         };
 
         return result;

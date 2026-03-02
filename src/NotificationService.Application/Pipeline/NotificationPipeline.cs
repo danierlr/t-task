@@ -107,7 +107,7 @@ public class NotificationPipeline : IReconfigurable {
         );
 
         if(retryAt >= entry.ExpiresAt) {
-            SettleEntry(entry, now, false, "Notification time to live expires before the notification can be sent");
+            SettleEntry(entry, now, false, null, "Notification time to live expires before the notification can be sent");
             return;
         }
 
@@ -133,7 +133,7 @@ public class NotificationPipeline : IReconfigurable {
 
                 if (entry is not null && now >= entry.ExpiresAt) {
                     retryQueue.DequeueExpired();
-                    SettleEntry(entry, now, false, "Notification time to live expires before the notification has been sent");
+                    SettleEntry(entry, now, false, null, "Notification time to live expires before the notification has been sent");
 
                     didWork = true;
                 } else {
@@ -206,12 +206,16 @@ public class NotificationPipeline : IReconfigurable {
         return submitted;
     }
 
-    public void SettleEntry(NotificationEntry entry, DateTime settleTime, bool success, string? message = null) {
+    public void SettleEntry(NotificationEntry entry, DateTime settleTime, bool success, string? usedProviderName, string? message) {
+        if(success && usedProviderName is null) {
+            throw new InvalidOperationException("Cannot settle notification as sent without specifying the provider name");
+        }
+
         using (var _ = entry.Lock()) {
             entry.State = null;
 
             if (success) {
-                entry.Notification.MarkAsSent(settleTime);
+                entry.Notification.MarkAsSent(settleTime, usedProviderName!);
             } else {
                 entry.Notification.MarkAsFailed(message, settleTime);
             }

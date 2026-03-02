@@ -7,5 +7,7 @@ public sealed record SendNotificationResult(
     NotificationStatus Status,
     DateTime CreatedAt,
     DateTime? SettledAt,
-    string? ErrorMessage
+    string? ErrorMessage,
+    string? UsedProviderName,
+    long RetryCount
 );

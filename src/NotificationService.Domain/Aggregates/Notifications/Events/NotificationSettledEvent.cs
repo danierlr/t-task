@@ -6,5 +6,6 @@ public sealed record NotificationSettledEvent(
     NotificationId NotificationId,
     NotificationStatus Status,
     DateTime SettledAt,
-    string? FailReason
+    string? FailReason,
+    string? UsedProviderName
 ) : IDomainEvent { }

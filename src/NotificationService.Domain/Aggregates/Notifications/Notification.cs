@@ -33,7 +33,7 @@ public sealed class Notification : Entity {
         Status = newStatus;
     }
 
-    public void MarkAsSent(DateTime sentTime) {
+    public void MarkAsSent(DateTime sentTime, string usedProviderName) {
         if (IsSettled()) {
             throw new DomainRuleViolationException($"Cannot transition notification with id:{Id} from {Status} status to {NotificationStatus.Sent} status");
         }
@@ -45,7 +45,8 @@ public sealed class Notification : Entity {
             NotificationId: Id,
             Status: NotificationStatus.Sent,
             SettledAt: sentTime,
-            FailReason: null
+            FailReason: null,
+            UsedProviderName: usedProviderName
         );
 
         AddEvent(settledEvent);
@@ -64,7 +65,8 @@ public sealed class Notification : Entity {
             NotificationId: Id,
             Status: NotificationStatus.Failed,
             SettledAt: failTime,
-            FailReason: failReason
+            FailReason: failReason,
+            UsedProviderName: null
         );
 
         AddEvent(settledEvent);
