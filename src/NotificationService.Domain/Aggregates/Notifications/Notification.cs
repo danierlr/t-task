@@ -18,10 +18,13 @@ public sealed class Notification : Entity {
 
     public DateTime? SettledAt { get; private set; }
 
-    public Notification(NotificationId id, DeliveryChannel channel, string message, DateTime createdAt) {
+    public Recipient Recipient { get; }
+
+    public Notification(NotificationId id, DeliveryChannel channel, string message, Recipient recipient, DateTime createdAt) {
         Id = id;
         Channel = channel;
         Message = message;
+        Recipient = recipient;
         CreatedAt = createdAt;
         Status = NotificationStatus.Processing;
     }

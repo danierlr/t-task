@@ -93,7 +93,7 @@ public class NotificationPipeline : IReconfigurable {
         );
 
         if(retryAt >= entry.ExpiresAt) {
-            ExpireEntry(entry, now, "Notification time to live expires before the notification can be sent");
+            SettleEntry(entry, now, false, "Notification time to live expires before the notification can be sent");
             return;
         }
 
@@ -119,7 +119,7 @@ public class NotificationPipeline : IReconfigurable {
 
                 if (entry is not null && now >= entry.ExpiresAt) {
                     retryQueue.DequeueExpired();
-                    ExpireEntry(entry, now, "Notification time to live expires before the notification has been sent");
+                    SettleEntry(entry, now, false, "Notification time to live expires before the notification has been sent");
 
                     didWork = true;
                 } else {
@@ -192,10 +192,16 @@ public class NotificationPipeline : IReconfigurable {
         return submitted;
     }
 
-    private void ExpireEntry(NotificationEntry entry, DateTime expiryTime, string message) {
+    public void SettleEntry(NotificationEntry entry, DateTime settleTime, bool success, string? message = null) {
         using (var _ = entry.Lock()) {
             entry.State = null;
-            entry.Notification.MarkAsFailed(message, expiryTime);
+
+            if (success) {
+                entry.Notification.MarkAsSent(settleTime);
+            } else {
+                entry.Notification.MarkAsFailed(message, settleTime);
+            }
+            
             _dispatcher.Dispatch(entry.Notification.DomainEvents);
             entry.Notification.ClearDomainEvents();
         }
@@ -272,7 +278,7 @@ public class NotificationPipeline : IReconfigurable {
         _autoResetEvent.WaitOne(duration);
     }
 
-    private void Wake() {
+    public void Wake() {
         _autoResetEvent.Set();
     }
 
