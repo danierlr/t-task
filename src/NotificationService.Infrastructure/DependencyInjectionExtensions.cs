@@ -18,7 +18,9 @@ namespace NotificationService.Infrastructure;
 
 public static class DependencyInjectionExtensions {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration) {
-        var config = configuration.Get<PipelineConfiguration>();
+        var config = configuration
+            .GetSection("Pipeline")
+            .Get<PipelineConfiguration>();
 
         var initialSettings = SettingsMapper.ToPipelineSettings(config!);
 
