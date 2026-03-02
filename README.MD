@@ -22,7 +22,7 @@ The notification enters the pipeline via an unbounded Channel and is assigned Qu
 
 If the provider call succeeds, the notification is settled as Sent. If it fails, the pipeline calculates the next retry time using exponential backoff (initialDelay * backoffMultiplier ^ retryCount, capped at maxRetryDelay) and places the entry back in the retry queue with QueuedForProviderRetry state. If the calculated retry time exceeds the notification's TTL, or the maximum retry count is reached, the notification is settled as Failed.
 
-Each delivery channel has its own retry queue to prevent one slow channel from delaying others — a slow SMS provider doesn't delay email delivery.
+Each delivery channel has its own retry queue to prevent one slow channel from delaying others - a slow SMS provider doesn't delay email delivery.
 
 ### Provider Lanes
 
@@ -37,6 +37,8 @@ The pipeline worker runs on a single dedicated thread (ThreadPriority.AboveNorma
 
 Per-notification locking uses a RAII pattern via ILockable / LockToken - a disposable struct that acquires Monitor.Enter on construction and Monitor.Exit on dispose. This protects concurrent mutations from the pipeline worker and lane workers (e.g., a timeout expiring a notification while a provider call completes).
 Capacity is tracked at two levels: a global CapacityLimiter on the pipeline controls total in-flight notifications, and per-lane capacity limiters control buffer sizes and concurrency slots. All use lock-free Interlocked operations.
+
+The design avoids contention bottlenecks. The pipeline worker is single-threaded, so retry queues and channel state are accessed without locks. Per-notification locks are only contested between the pipeline worker and the specific lane worker processing that notification - never more than two threads. Per-lane capacity limiters use lock-free Interlocked operations. There is no shared lock that multiple threads compete for simultaneously.
 
 ### Configuration
 
@@ -100,7 +102,7 @@ Capacity retry with zero delay over artificial backoff - when all lanes are full
 
 - Callback URL support for async notification status updates
 
-- Loading notifications from the db, that have not been settled yet and persistance to actual db
+- Loading notifications from the db, that have not been settled yet and persistence to actual db
 
 - circuit breaker pattern for the external providers. Consider Polly, Microsoft.Extensions.Resilience
 
