@@ -7,7 +7,7 @@ public class ChannelConfiguration {
 
     public long TimeToLiveMs { get; set; }
 
-    public long InitialRetryDelay { get; set; }
+    public long InitialRetryDelayMs { get; set; }
 
     public double BackoffMultiplier { get; set; }
 

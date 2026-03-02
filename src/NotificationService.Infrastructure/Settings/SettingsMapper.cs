@@ -14,7 +14,7 @@ public static class SettingsMapper {
                 MaxNumRetries = channelConfiguration.Value.MaxNumRetries,
                 ResultLingerDuration = TimeSpan.FromMilliseconds(channelConfiguration.Value.ResultLingerDurationMs),
                 TimeToLive = TimeSpan.FromMilliseconds(channelConfiguration.Value.TimeToLiveMs),
-                InitialRetryDelay = TimeSpan.FromMilliseconds(channelConfiguration.Value.InitialRetryDelay),
+                InitialRetryDelay = TimeSpan.FromMilliseconds(channelConfiguration.Value.InitialRetryDelayMs),
                 BackoffMultiplier = channelConfiguration.Value.BackoffMultiplier,
                 MaxRetryDelay = TimeSpan.FromMilliseconds(channelConfiguration.Value.MaxRetryDelayMs),
             };

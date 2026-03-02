@@ -7,7 +7,7 @@ using NotificationService.Domain.Ports;
 
 namespace NotificationService.Application.Notifications;
 
-public class NotificationSender : INotificationSender, IReconfigurable {
+public class NotificationSender : INotificationSender {
     private readonly INotificationRepository _notificationRepository;
     private readonly NotificationPipeline _notificationPipeline;
     private readonly IIdGenerator _idGenerator;

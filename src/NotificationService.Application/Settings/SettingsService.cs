@@ -7,11 +7,11 @@ public class SettingsService {
     private PipelineSettings _settings;
 
     private readonly NotificationPipeline _notificationPipeline;
-    private readonly NotificationSender _notificationSender;
+    private readonly INotificationSender _notificationSender;
     public SettingsService(
         PipelineSettings initialSettings,
         NotificationPipeline notificationPipeline,
-        NotificationSender notificationSender
+        INotificationSender notificationSender
     ){
         _settings = initialSettings;
         _notificationPipeline = notificationPipeline;
