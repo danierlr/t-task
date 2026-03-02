@@ -19,7 +19,7 @@ public class NotificationPipeline : IReconfigurable {
 
     private readonly DomainEventDispatcher _dispatcher;
 
-    private PipelineSettings _settings;
+    private volatile PipelineSettings _settings;
 
     private readonly PipelineCancelToken _pipelineCancelToken;
 
@@ -261,7 +261,7 @@ public class NotificationPipeline : IReconfigurable {
 
     private TimeSpan FindSleepDuration(HashSet<DeliveryChannel> channelsFull) {
         DateTime now = DateTime.UtcNow;
-        //DateTime minTime = DateTime.MaxValue; // does not work ...
+        //DateTime minTime = DateTime.MaxValue; // TODO fix overflow issue
         DateTime minTime = now + TimeSpan.FromDays(10);
 
         foreach (var (channel, retryQueue) in _retryQueues) {

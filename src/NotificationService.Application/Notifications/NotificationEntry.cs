@@ -10,7 +10,7 @@ public class NotificationEntry : ILockable {
 
     public SyncRoot SyncRoot { get; } = new();
 
-    public int RetryCount { get; set; }
+    public long RetryCount { get; set; }
 
     public DateTime ExpiresAt { get; set; }
 

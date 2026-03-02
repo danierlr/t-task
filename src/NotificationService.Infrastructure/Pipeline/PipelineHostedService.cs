@@ -3,12 +3,12 @@ using NotificationService.Application.Pipeline;
 
 namespace NotificationService.Infrastructure.Pipeline;
 
-internal class PipelineWorkerService : IHostedService {
+internal class PipelineHostedService : IHostedService {
     private readonly NotificationPipeline _notificationPipeline;
     private Thread? _thread;
     private readonly PipelineCancelToken _pipelineCancelToken;
 
-    public PipelineWorkerService(NotificationPipeline notificationPipeline, PipelineCancelToken pipelineCancelToken) {
+    public PipelineHostedService(NotificationPipeline notificationPipeline, PipelineCancelToken pipelineCancelToken) {
         _notificationPipeline = notificationPipeline;
         _pipelineCancelToken = pipelineCancelToken;
     }

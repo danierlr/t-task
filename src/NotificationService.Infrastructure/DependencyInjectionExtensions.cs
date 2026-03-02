@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NotificationService.Application.IdGenerator;
+using NotificationService.Application.Initialization;
 using NotificationService.Application.Notifications;
 using NotificationService.Application.Pipeline;
 using NotificationService.Application.RetryQueue;
@@ -8,6 +9,7 @@ using NotificationService.Application.Settings;
 using NotificationService.Application.Shared;
 using NotificationService.Domain.Aggregates.Notifications;
 using NotificationService.Domain.Ports;
+using NotificationService.Infrastructure.Initialization;
 using NotificationService.Infrastructure.Persistence;
 using NotificationService.Infrastructure.Pipeline;
 using NotificationService.Infrastructure.Providers.Fake;
@@ -61,10 +63,12 @@ public static class DependencyInjectionExtensions {
         services.AddSingleton<PipelineCancelToken>();
         services.AddSingleton<NotificationPipeline>();
         services.AddSingleton<INotificationSender, NotificationSender>();
+        services.AddSingleton<InitializationService>();
         
         services.AddSingleton<SettingsService>();
 
-        services.AddHostedService<PipelineWorkerService>();
+        services.AddHostedService<InitializationHostedService>();
+        services.AddHostedService<PipelineHostedService>();
 
         return services;
     }
