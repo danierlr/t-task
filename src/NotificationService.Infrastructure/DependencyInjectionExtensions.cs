@@ -53,12 +53,12 @@ public static class DependencyInjectionExtensions {
             );
 
         services.AddSingleton(retryQueues);
-
-        services.AddSingleton<ProviderLaneStore>();
         services.AddSingleton<DomainEventDispatcher>();
         services.AddSingleton<NotificationSettleRegistry>();
         services.AddSingleton<INotificationRepository, FakeNotificationRepository>();
         services.AddSingleton<IIdGenerator, SequentialIdGenerator>();
+        services.AddSingleton<PipelineCancelToken>();
+        services.AddSingleton<NotificationPipeline>();
         services.AddSingleton<INotificationSender, NotificationSender>();
         
         services.AddSingleton<SettingsService>();

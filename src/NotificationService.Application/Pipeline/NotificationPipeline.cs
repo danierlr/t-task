@@ -21,7 +21,7 @@ public class NotificationPipeline : IReconfigurable {
 
     private PipelineSettings _settings;
 
-    private readonly CancellationToken _cancellationToken;
+    private readonly PipelineCancelToken _pipelineCancelToken;
 
     public ProviderLaneStore LaneStore { get; }
 
@@ -30,18 +30,18 @@ public class NotificationPipeline : IReconfigurable {
         IReadOnlyList<INotificationProvider> providers,
         DomainEventDispatcher dispatcher,
         PipelineSettings initialSettings,
-        CancellationToken cancellationToken
+        PipelineCancelToken pipelineCancelToken
     ) {
         _retryQueues = retryQueues;
         _inbound = Channel.CreateUnbounded<NotificationEntry>();
         _dispatcher = dispatcher;
         _settings = initialSettings;
         _totalCapacityLimiter = new CapacityLimiter(initialSettings.TotalNotificationCapacity);
-        _cancellationToken = cancellationToken;
+        _pipelineCancelToken = pipelineCancelToken;
 
         List<ProviderLane> lanes = providers.Select(provider => {
             var settings = _settings.Lanes[(provider.Channel, provider.Name)];
-            ProviderLane lane = new(provider, settings, this, _cancellationToken);
+            ProviderLane lane = new(provider, settings, this, pipelineCancelToken.Token);
             return lane;
         }).ToList();
 
@@ -301,9 +301,9 @@ public class NotificationPipeline : IReconfigurable {
     }
 
     public void Run() {
-        _cancellationToken.Register(Wake);
+        _pipelineCancelToken.Token.Register(Wake);
 
-        while (!_cancellationToken.IsCancellationRequested) {
+        while (!_pipelineCancelToken.Token.IsCancellationRequested) {
             bool didWork = false;
 
             HashSet<DeliveryChannel> channelsFull;

@@ -6,16 +6,14 @@ namespace NotificationService.Infrastructure.Pipeline;
 internal class PipelineWorkerService : IHostedService {
     private readonly NotificationPipeline _notificationPipeline;
     private Thread? _thread;
-    private CancellationTokenSource? _cts;
+    private readonly PipelineCancelToken _pipelineCancelToken;
 
-    public PipelineWorkerService(NotificationPipeline notificationPipeline) {
+    public PipelineWorkerService(NotificationPipeline notificationPipeline, PipelineCancelToken pipelineCancelToken) {
         _notificationPipeline = notificationPipeline;
+        _pipelineCancelToken = pipelineCancelToken;
     }
 
     public Task StartAsync(CancellationToken cancellationToken) {
-        // need custom token source, because cancellationToken here serves to abort start only, it is not used for stop
-        _cts = CancellationTokenSource.CreateLinkedTokenSource();
-
         _thread = new Thread(() => {
             _notificationPipeline.Run();
         }) {
@@ -32,9 +30,9 @@ internal class PipelineWorkerService : IHostedService {
     public Task StopAsync(CancellationToken cancellationToken) {
         // TODO more graceful shutdown
 
-        _cts?.Cancel();
+        _pipelineCancelToken.Cancel();
         _thread?.Join();
-        _cts?.Dispose();
+        _pipelineCancelToken.Dispose();
 
         return Task.CompletedTask;
     }
