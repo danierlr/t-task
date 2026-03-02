@@ -5,9 +5,11 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "recipient": "+37061234567",
+    "recipient": {
+        "email": "+37061234567"
+    },
     "message": "message_example",
-    "channel": "sms"
+    "channel": "email"
 }
 
 ###
