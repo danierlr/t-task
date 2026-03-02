@@ -6,7 +6,7 @@ namespace NotificationService.Api.Notifications;
 
 public static class NotificationMappingExtensions {
     public static SendNotificationRequest ToSendNotificationRequest(this SendNotificationHttpRequest httpRequest) {
-        Channel channel = EnumParser.ParseFromSnakeCase<Channel>(httpRequest.Channel);
+        DeliveryChannel channel = EnumParser.ParseFromSnakeCase<DeliveryChannel>(httpRequest.Channel);
 
         string GetRecipientProperty(string key) {
             string? value;
@@ -21,9 +21,9 @@ public static class NotificationMappingExtensions {
         }
 
         Recipient recipient = channel switch {
-            Channel.Sms => new SmsRecipient(GetRecipientProperty("phone")),
-            Channel.Email => new EmailRecipient(GetRecipientProperty("email")),
-            Channel.Push => new PushRecipient(GetRecipientProperty("device_token")),
+            DeliveryChannel.Sms => new SmsRecipient(GetRecipientProperty("phone")),
+            DeliveryChannel.Email => new EmailRecipient(GetRecipientProperty("email")),
+            DeliveryChannel.Push => new PushRecipient(GetRecipientProperty("device_token")),
             _ => throw new ArgumentException($"Channel is not supported: {channel}")
         };
 

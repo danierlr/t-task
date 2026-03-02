@@ -17,7 +17,7 @@ internal class PipelineWorkerService : IHostedService {
         _cts = CancellationTokenSource.CreateLinkedTokenSource();
 
         _thread = new Thread(() => {
-            _notificationPipeline.Run(_cts.Token);
+            _notificationPipeline.Run();
         }) {
             IsBackground = true,
             Name = "NotificationPipelineWorker",
